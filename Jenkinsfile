@@ -8,13 +8,13 @@ pipeline {
     stages { 
         stage('SCM Checkout') {
             steps {
-                git url: 'https://github.com/PSock7/S9-devops-project.git', branch: 'main'
+                git url: 'https://github.com/PSock7/S9-devops-project.git', branch: 'dev'
             }
         }
 
         stage('Build docker image') {
             steps {  
-                sh 'docker build -t efrei2023/golangwebapi .'
+                sh 'docker build -t efrei2023/golangwebapi:${BUILD_NUMBER} .'
             }
         }
         stage('Login to Docker Hub') {
@@ -26,7 +26,7 @@ pipeline {
         }
         stage('Push image to Docker Hub') {
             steps {
-                sh 'docker push efrei2023/golangwebapi'
+                sh 'docker push efrei2023/golangwebapi:${BUILD_NUMBER}'
             }
         }
     }
