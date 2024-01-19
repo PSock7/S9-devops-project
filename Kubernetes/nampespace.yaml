@@ -5,6 +5,8 @@ metadata:
   name: developpement
   labels:
     environment: developpement
+...
+
 ---
 apiVersion: v1
 kind: Namespace
