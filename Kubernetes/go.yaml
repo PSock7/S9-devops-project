@@ -27,8 +27,8 @@ metadata:
   name: gowebapi
   namespace: developpement
 spec:
+  type: NodePort
   selector:
-    type: NodePort
     app: gowebapi
   ports:
     - protocol: TCP
