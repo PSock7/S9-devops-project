@@ -27,11 +27,10 @@ metadata:
   name: gowebapi
   namespace: developpement
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: gowebapi
   ports:
     - protocol: TCP
       port: 8181
       targetPort: 8181
-      NodePort: 31280
