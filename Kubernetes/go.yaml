@@ -25,9 +25,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: gowebapi
+  namespace: developpement
 spec:
   selector:
+    type: NodePort
     app: gowebapi
   ports:
     - protocol: TCP
       port: 8181
+      targetPort: 8181
+      NodePort: 31280
