@@ -1,37 +1,38 @@
 pipeline {
     agent {
         label 'jenkins-slave'
-    } 
+    }
     environment {
-    DOCKERHUB_CREDENTIALS = credentials('devops-cred')
+        DOCKERHUB_CREDENTIALS = credentials('devops-cred')
     }
     stages { 
         stage('SCM Checkout') {
-            steps{
-            git 'https://github.com/PSock7/S9-devops-project.git'
+            steps {
+                git 'https://github.com/PSock7/S9-devops-project/tree/main.git'
             }
         }
 
         stage('Build docker image') {
             steps {  
-                sh 'docker build -t efrei2023/golangwebapi:$BUILD_NUMBER .'
+                sh 'docker build -t efrei2023/golangwebapi .'
             }
         }
-        stage('login to dockerhub') {
-            steps{
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'devops-cred', passwordVariable: 'DOCKERHUB_PSW', usernameVariable: 'DOCKERHUB_USR')]) {
+                    sh 'echo $DOCKERHUB_PSW | docker login -u $DOCKERHUB_USR --password-stdin'
+                }
             }
         }
-        stage('push image') {
-            steps{
-                sh 'docker push efrei2023/golangwebapi:$BUILD_NUMBER'
+        stage('Push image to Docker Hub') {
+            steps {
+                sh 'docker push efrei2023/golangwebapi'
             }
         }
-}
-post {
+    }
+    post {
         always {
             sh 'docker logout'
         }
     }
 }
-
