@@ -4,7 +4,7 @@ kind: Namespace
 metadata:
   name: developpement
   labels:
-    environment: developpement
+    name: developpement
 ...
 
 ---
@@ -13,5 +13,6 @@ kind: Namespace
 metadata:
   name: production
   labels:
-    environment: production
+    name: production
 ...
+
