@@ -8,7 +8,7 @@ pipeline {
     stages { 
         stage('SCM Checkout') {
             steps{
-            git 'https://github.com/PSock7/Devops-project'
+            git 'https://github.com/PSock7/S9-devops-project'
             }
         }
 
