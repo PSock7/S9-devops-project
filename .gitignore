@@ -1,1 +1,5 @@
-./slave
+remoting
+workspace
+caches 
+Kubernetes/alertmanager-config.yaml
+agent.jar
