@@ -152,18 +152,19 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('devops-cred')
         NEW_IMAGE = "efrei2023/golangwebapi:${BUILD_NUMBER}"
     }
-    stages { 
+    stages {
         stage('SCM Checkout') {
             steps {
-                git url: 'https://github.com/PSock7/S9-devops-project.git', branch: 'dev'
+                checkout scm
             }
         }
 
         stage('Build docker image') {
-            steps {  
-                sh 'docker build -t efrei2023/golangwebapi:${BUILD_NUMBER} .'
+            steps {
+                sh 'docker build -t ${NEW_IMAGE} .'
             }
         }
+
         stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'devops-cred', passwordVariable: 'DOCKERHUB_PSW', usernameVariable: 'DOCKERHUB_USR')]) {
@@ -171,20 +172,39 @@ pipeline {
                 }
             }
         }
+
         stage('Push image to Docker Hub') {
             steps {
-                sh 'docker push efrei2023/golangwebapi:${BUILD_NUMBER}'
+                sh 'docker push ${NEW_IMAGE}'
             }
         }
-        stage('Deploy Go webapi  container to K8s'){
-            steps{
-                script{
-                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/go.yaml"
+
+        stage('Deploy to Dev Environment') {
+            when {
+                branch 'dev'
+            }
+            steps {
+                script {
+                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/dev/go.yaml"
                     sh 'kubectl apply -f ./Kubernetes/namespace.yaml'
-                    sh 'kubectl apply -f ./Kubernetes/go.yaml'
+                    sh 'kubectl apply -f ./Kubernetes/dev/go.yaml'
                 }
             }
         }
+
+        stage('Deploy to Prod Environment') {
+            when {
+                branch 'prod'
+            }
+            steps {
+                script {
+                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/prod/go.yaml"
+                    sh 'kubectl apply -f ./Kubernetes/namespace.yaml'
+                    sh 'kubectl apply -f ./Kubernetes/prod/go.yaml'
+                }
+            }
+        }
+
     }
     post {
         always {
@@ -192,6 +212,7 @@ pipeline {
         }
     }
 }
+
 ```
 also you need to set up your docker hub token 
 ![manage node](./pictures/cred.png "manage node ")
