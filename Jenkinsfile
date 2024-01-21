@@ -30,12 +30,12 @@ pipeline {
                 sh 'docker push efrei2023/golangwebapi:${BUILD_NUMBER}'
             }
         }
-        stage('Deploy Go webapi  container to K8s'){
+        stage('Deploy Go webapi  container to K8s in dev environment'){
             steps{
                 script{
-                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/go.yaml"
+                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/dev/go.yaml"
                     sh 'kubectl apply -f ./Kubernetes/namespace.yaml'
-                    sh 'kubectl apply -f ./Kubernetes/go.yaml'
+                    sh 'kubectl apply -f ./Kubernetes/dev/go.yaml'
                 }
             }
         }

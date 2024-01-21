@@ -1,0 +1,36 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gowebapi
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: gowebapi
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: gowebapi
+    spec:
+      containers:
+        - name: gowebapi
+          image: efrei2023/golangwebapi:latest
+          ports:
+            - containerPort: 8181
+...
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gowebapi
+  namespace: production
+spec:
+  type: LoadBalancer
+  selector:
+    app: gowebapi
+  ports:
+    - protocol: TCP
+      port: 8181
+      targetPort: 8181
