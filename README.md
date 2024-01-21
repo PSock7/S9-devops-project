@@ -17,7 +17,7 @@ These containers are then sent to a container registry, such as Docker Hub, wher
 
 ## Customize the application so that the /whoami endpoint displays your team’s name and and deploy it on local docker engine by using Jenkins.
 We update the `main.go` file by introducing an additional parameter to the `whomai` type struct, and subsequently, we alter the `whoami` endpoint to reflect this change.
-```go
+```console
 type whoami struct {
 	Name  string
 	Title string
@@ -73,7 +73,6 @@ now execute :
 docker run --name jenkins -d -p 8080:8080 -p 50000:50000  -v jenkins_volume:/var/jenkins_home --network minikube jenkins/jenkins:lts
 ```
 and configure the jenkins `http://localhost:8080`
-
 ![pipeline config](./pictures/pipeline-conf.png "pipeline config")
 set also the credentials
 ![pipeline config](./pictures/pipeline-conf-1.png "pipeline config")
@@ -82,6 +81,58 @@ manage node add
 launch slave 
 ![manage node](./pictures/slave-3.png "manage node ")
 
+## Deploy app locally using jenkins
+we use the docker compose file to run the pipeline
+```yaml
+pipeline {
+    agent {
+        label 'jenkins-slave'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Nelson-Fossi/DevOps_project.git'
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    // Adjust Docker commands for Windows
+                    sh 'docker-compose build'
+                }
+            }
+        }
+
+        stage('Deploy to Local Docker Engine') {
+            steps {
+                script {
+                    // Adjust Docker commands for Windows
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                // Adjust Docker commands for Windows
+                sh 'docker-compose down'
+            }
+        }
+    }
+}
+
+```
+after launch the test build and :
+```console
+curl http://localhost:8181/whoami
+```
+![manage node](./pictures/locally-jenkins.png "manage node ")
+
+# Update the pipeline to deploy the application on your Kubernetes (Minikube) cluster
 #### Add minikube in our jenkins configuration 
 Install the kubernetes plugins and to add the minikube go to manage jenkins and clouds and add a new cloud
 ![manage node](./pictures/cloud-1.png "manage node ")
@@ -92,7 +143,7 @@ Before saving the information we need to test if the test succeed
 #### Set credentials
 you need to set up your github credential if you choose pipeline scm instead of pipeline script
 to automatically called our jenkinsfile
-```Jenkinsfile
+```console
 pipeline {
     agent {
         label 'jenkins-slave'
@@ -141,7 +192,6 @@ pipeline {
         }
     }
 }
-
 ```
 also you need to set up your docker hub token 
 ![manage node](./pictures/cred.png "manage node ")

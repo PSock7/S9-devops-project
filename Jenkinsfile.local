@@ -1,0 +1,40 @@
+pipeline {
+    agent {
+        label 'jenkins-slave'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/PSock7/S9-devops-project.git', branch: 'dev'
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    // Adjust Docker commands for Windows
+                    sh 'docker-compose build'
+                }
+            }
+        }
+
+        stage('Deploy to Local Docker Engine') {
+            steps {
+                script {
+                    // Adjust Docker commands for Windows
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                // Adjust Docker commands for Windows
+                sh 'docker-compose down'
+            }
+        }
+    }
+}
