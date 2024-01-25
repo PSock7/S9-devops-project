@@ -331,6 +331,9 @@ minikube service prometheus-service --url
 ## Repeat steps 1 - 4 for the Grafana component using Official Helm Chart ##
 
 * Grafana Helm repo :  https://grafana.github.io/helm-charts
+```console
+helm install grafana grafana/grafana -n developpement 
+```
 
 * Chart name : 'grafana/grafana'. your own password for admin access.
 ```console
@@ -452,9 +455,58 @@ we change the receiver from the alertmanager and use
 Install the component by using the  Helm chart provided by grafana :
 
 ```console
-helm upgrade --install loki grafana/loki-stack --set promtail.enabled=false  --set grafana.enabled=false
+helm show values grafana/loki-stack > loki-stack-values.yaml 
 ```
+```console 
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+  isDefault: true
+  url: http://{{(include "loki.serviceName" .)}}:{{ .Values.loki.service.port }}
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+  livenessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+  datasource:
+    jsonData: "{}"
+    uid: ""
+
+
+promtail:
+  enabled: true
+  config:
+    logLevel: info
+    serverPort: 3101
+    clients:
+      - url: http://{{ .Release.Name }}:3100/loki/api/v1/push
+grafana:
+  enabled: true
+  sidecar:
+    datasources:
+      label: ""
+      labelValue: ""
+      enabled: true
+      maxLines: 1000
+  image:
+    tag: 8.3.5
+```
+```console
+helm install loki-stack grafana/loki-stack --values loki-stack-values.yaml -n developpement
+```
+```console
+kubectl -n developpement port-forward svc/loki-stack-grafana 3000:80
+```
+
 Expose Loki service via NodePort in order to access UI with target port 3100 : 
 ```console 
 kubectl expose service loki --type=NodePort --target-port=3100 --name=loki-service
 ```
+![manage node](./pictures/query-log.png "manage node ")
