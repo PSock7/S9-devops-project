@@ -5,10 +5,10 @@ while true; do
             echo "Le pod gowebapi est en cours d'exécution."
             break
         else
-            echo "En attente que le pod MongoDB soit en cours d'exécution..."
-            sleep 2000
+            echo "En attente que le pod gowebapi soit en cours d'exécution..."
+            sleep 10
         fi
     done
-    
+    sleep 10
 a=$(minikube service gowebapi --url -n developpement)
 curl "$a/whoami"
