@@ -58,7 +58,13 @@ pipeline {
                 }
             }
         }
-
+        stage('Display Endpoint'){
+            steps{
+                script{
+                    sh "bash script.sh"
+                }
+            }
+        }
     }
     post {
         always {
