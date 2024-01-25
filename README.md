@@ -150,7 +150,7 @@ pipeline {
     }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('devops-cred')
-        NEW_IMAGE = "efrei2023/golangwebapi:${BUILD_NUMBER}"
+        NEW_IMAGE = "xdev78/golangwebapi:${BUILD_NUMBER}"
     }
     stages {
         stage('SCM Checkout') {
@@ -185,7 +185,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/dev/go.yaml"
+                    sh "sed -i 's|xdev78/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/dev/go.yaml"
                     sh 'kubectl apply -f ./Kubernetes/namespace.yaml'
                     sh 'kubectl apply -f ./Kubernetes/dev/go.yaml'
                 }
@@ -198,13 +198,19 @@ pipeline {
             }
             steps {
                 script {
-                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/prod/go.yaml"
+                    sh "sed -i 's|xdev78/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/prod/go.yaml"
                     sh 'kubectl apply -f ./Kubernetes/namespace.yaml'
                     sh 'kubectl apply -f ./Kubernetes/prod/go.yaml'
                 }
             }
         }
-
+        stage('Display Endpoint'){
+            steps{
+                script{
+                    sh "bash script.sh"
+                }
+            }
+        }
     }
     post {
         always {
@@ -214,7 +220,7 @@ pipeline {
 }
 
 ```
-also you need to set up your docker hub token 
+also you need to set up your docker hub token and the github token
 ![manage node](./pictures/cred.png "manage node ")
 #### Kubernetes file 
 We are created two files : 
@@ -279,13 +285,14 @@ spec:
       targetPort: 8181
 ```
 #### Test Build
-After setting up all configuration we start the build
-![manage node](./pictures/test.png "manage node ")
+After setting up all configuration we start the build in dev branch 
+We can also do it in prod branch
+![manage node](./pictures/succces-pipeline.png "manage node ")
 we see in our docker hub the build image
 ![manage node](./pictures/hub.png "manage node ")
 ![manage node](./pictures/test-1.png "manage node ")
 ![manage node](./pictures/test-2.png "manage node ")
-
+![manage node](./pictures/display-endpoint.png "manage node ")
 ## Build the docker image using the buildpack utility and describe what you observe in comparison with the Dockerfile option
  First we need to install the buildpack utility in our local machine 
 ```console
@@ -316,34 +323,37 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 ```
 Step 2 - Install provided Helm chart for Prometheus : 
 ```console 
-helm install prometheus prometheus-community/prometheus
+helm install prometheus prometheus-community/prometheus -n developpement 
 ```
 Step 3 - Expose the prometheus-server service via NodePort : 
 ```console 
-kubectl expose service prometheus-server --type=NodePort --target-port=9090 --name=prometheus-service
+kubectl expose service prometheus-server --type=NodePort --target-port=9090 --name=prometheus-service -n developpement 
 ```
 Step 4 - Access Prometheus UI : 
 ```console 
-minikube service prometheus-service --url
+minikube service prometheus-service --url -n developpement 
 ```
 ![manage node](./pictures/prometheus.png "manage node ")
 
 ## Repeat steps 1 - 4 for the Grafana component using Official Helm Chart ##
 
 * Grafana Helm repo :  https://grafana.github.io/helm-charts
+```console
+helm install grafana grafana/grafana -n developpement 
+```
 
 * Chart name : 'grafana/grafana'. your own password for admin access.
 ```console
-kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo 
+kubectl -n developpement get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo 
 ```
 
 * Expose Grafana service via NodePort in order to access Grafana UI with 
 ```console
-kubectl expose service grafana  --type=NodePort --target-port=3000 --name=grafana-service.
+kubectl expose service grafana  --type=NodePort --target-port=3000 --name=grafana-service -n developpement 
 ```
 * Access Grafana Web UI and configure a datasource with the deployed prometheus service url 
 ```console
-minikube service grafana-service --url
+minikube service grafana-service --url -n developpement 
 ```
 ![manage node](./pictures/grafana.png "manage node ")
 * Install and Explore Node_Exporter Dashborad. ID 1860
@@ -351,10 +361,10 @@ minikube service grafana-service --url
 ## Configure Alert Manager component and setup Alerts
 Expose AlertManager service via NodePort in order to access UI with target port 9093
 ```console
-kubectl expose service prometheus-alertmanager --type=NodePort --target-port=9093 --name=alert-service
+kubectl expose service prometheus-alertmanager --type=NodePort --target-port=9093 --name=alert-service -n developpement 
 ```
 ```console 
-minikube service alert-service --url 
+minikube service alert-service --url  -n developpement 
 ```
 After we configure some alert based on this website :https://samber.github.io/awesome-prometheus-alerts/rules.html#kubernetes
 ```yaml
@@ -409,7 +419,7 @@ serverFiles:
 ```
 Apply the configuration update with : 
 ```console
-helm upgrade --reuse-values -f prometheus-alerts-rules.yaml prometheus prometheus-community/prometheus
+helm upgrade --reuse-values -f prometheus-alerts-rules.yaml prometheus prometheus-community/prometheus -n developpement 
 ```
 ## Configure AlertManager to send Alerts by Email ##
 We are created and alert manager config file to receive alert by mail
@@ -439,22 +449,78 @@ alertmanager:
         text: "{{ range .Alerts }} Hi, \n{{ .Annotations.summary }}  \n {{ .Annotations.description }} {{end}} "
 ```
 ```console
-   helm upgrade --reuse-values -f alertmanager-config.yaml prometheus prometheus-community/prometheus
+   helm upgrade --reuse-values -f alertmanager-config.yaml prometheus prometheus-community/prometheus -n developpement 
 ```
 ## Bonus (+1): Configure another alert and send it by e-mail to abdoul-aziz.zakari-madougou@intervenants.efrei.net.
+We have configured multiple alerts in our YAML file and sent two alerts to the professor: LowMemory and KubePodCrashLooping.
+![manage node](./pictures/bonus-prof.png "manage node ")
 we change the receiver from the alertmanager and use
 ```console
-   helm upgrade --reuse-values -f alertmanager-config.yaml prometheus prometheus-community/prometheus
+   helm upgrade --reuse-values -f alertmanager-config.yaml prometheus prometheus-community/prometheus -n developpement 
 ```
 ![manage node](./pictures/alertmanager.png "manage node ")
 ![manage node](./pictures/alert.png "manage node ")
 # Logs Management
 Install the component by using the  Helm chart provided by grafana :
-
+First you need to configure the loki-stack values
 ```console
-helm upgrade --install loki grafana/loki-stack --set promtail.enabled=false  --set grafana.enabled=false
+helm show values grafana/loki-stack > loki-stack-values.yaml 
 ```
-Expose Loki service via NodePort in order to access UI with target port 3100 : 
 ```console 
-kubectl expose service loki --type=NodePort --target-port=3100 --name=loki-service
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+  isDefault: true
+  url: http://{{(include "loki.serviceName" .)}}:{{ .Values.loki.service.port }}
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+  livenessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+  datasource:
+    jsonData: "{}"
+    uid: ""
+
+
+promtail:
+  enabled: true
+  config:
+    logLevel: info
+    serverPort: 3101
+    clients:
+      - url: http://{{ .Release.Name }}:3100/loki/api/v1/push
+grafana:
+  enabled: true
+  sidecar:
+    datasources:
+      label: ""
+      labelValue: ""
+      enabled: true
+      maxLines: 1000
+  image:
+    tag: 8.3.5
 ```
+After we can install loki-stack 
+```console
+helm install loki-stack grafana/loki-stack --values loki-stack-values.yaml -n developpement
+```
+to expose loki-stack-grafana in http://localhost:3000
+```console
+kubectl -n developpement port-forward svc/loki-stack-grafana 3000:80
+```
+To retrieve the password you can use this command :
+```console
+kubectl -n developpement get secret loki-stack-grafana -o yaml
+```
+to see log we need to enter the following command 
+```console
+{namespace="developpement"} |~ "error"
+```
+![manage node](./pictures/query-log.png "manage node ")

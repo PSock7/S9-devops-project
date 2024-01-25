@@ -4,7 +4,7 @@ pipeline {
     }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('devops-cred')
-        NEW_IMAGE = "efrei2023/golangwebapi:${BUILD_NUMBER}"
+        NEW_IMAGE = "xdev78/golangwebapi:${BUILD_NUMBER}"
     }
     stages {
         stage('SCM Checkout') {
@@ -39,7 +39,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/dev/go.yaml"
+                    sh "sed -i 's|xdev78/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/dev/go.yaml"
                     sh 'kubectl apply -f ./Kubernetes/namespace.yaml'
                     sh 'kubectl apply -f ./Kubernetes/dev/go.yaml'
                 }
@@ -52,13 +52,19 @@ pipeline {
             }
             steps {
                 script {
-                    sh "sed -i 's|efrei2023/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/prod/go.yaml"
+                    sh "sed -i 's|xdev78/golangwebapi:latest|${NEW_IMAGE}|' ./Kubernetes/prod/go.yaml"
                     sh 'kubectl apply -f ./Kubernetes/namespace.yaml'
                     sh 'kubectl apply -f ./Kubernetes/prod/go.yaml'
                 }
             }
         }
-
+        stage('Display Endpoint'){
+            steps{
+                script{
+                    sh "bash script.sh"
+                }
+            }
+        }
     }
     post {
         always {

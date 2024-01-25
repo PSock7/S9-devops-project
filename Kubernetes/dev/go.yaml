@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: gowebapi
-        image: efrei2023/golangwebapi:latest
+        image: xdev78/golangwebapi:latest
         ports:
         - containerPort: 8181
 ...
