@@ -462,7 +462,7 @@ we change the receiver from the alertmanager and use
 ![manage node](./pictures/alert.png "manage node ")
 # Logs Management
 Install the component by using the  Helm chart provided by grafana :
-
+First you need to configure the loki-stack values
 ```console
 helm show values grafana/loki-stack > loki-stack-values.yaml 
 ```
@@ -507,13 +507,18 @@ grafana:
   image:
     tag: 8.3.5
 ```
+After we can install loki-stack 
 ```console
 helm install loki-stack grafana/loki-stack --values loki-stack-values.yaml -n developpement
 ```
+to expose loki-stack-grafana in http://localhost:3000
 ```console
 kubectl -n developpement port-forward svc/loki-stack-grafana 3000:80
 ```
-
+To retrieve the password you can use this command :
+```console
+kubectl -n developpement get secret loki-stack-grafana -o yaml
+```
 Expose Loki service via NodePort in order to access UI with target port 3100 : 
 ```console 
 kubectl expose service loki --type=NodePort --target-port=3100 --name=loki-service
