@@ -519,8 +519,8 @@ To retrieve the password you can use this command :
 ```console
 kubectl -n developpement get secret loki-stack-grafana -o yaml
 ```
-Expose Loki service via NodePort in order to access UI with target port 3100 : 
-```console 
-kubectl expose service loki --type=NodePort --target-port=3100 --name=loki-service
+to see log we need to enter the following command 
+```console
+{namespace="developpement"} |~ "error"
 ```
 ![manage node](./pictures/query-log.png "manage node ")
