@@ -300,7 +300,7 @@ we see in our docker hub the build image
 ```
 use the command `pack builder suggest` that tell you what image would be best to use for your code.
 ```console 
-pack build gocloudpack --builder http://gcr.io/buildpacks/builder:v1 --path .
+pack build gocloudpack --builder gcr.io/buildpacks/builder:v1 --path .
 ```
  ![manage node](./pictures/build-3.png "manage node ")
 L'image construit avec build pack est plus leger .
